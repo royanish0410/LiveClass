@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo
+    container_name: liveclass-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  livekit:
+    image: livekit/livekit-server
+    container_name: liveclass-livekit
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+    environment:
+      - LIVEKIT_KEYS=local_key:local_secret
+      - LIVEKIT_HOST=localhost
+      - LIVEKIT_ANNOUNCE_IP=localhost
+      - LIVEKIT_DOMAIN=localhost
+      - LIVEKIT_API_PORT=7880
+      - LIVEKIT_WS_PORT=7881
+
+volumes:
+  mongo_data:
