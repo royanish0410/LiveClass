@@ -9,6 +9,47 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - liveclass-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: liveclass-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      # Pass the MongoDB URI and LiveKit keys from your local machine to the container
+      - MONGO_URI=mongodb://mongo:27017/liveclass
+      - LIVEKIT_API_KEY=devkey
+      - LIVEKIT_API_SECRET=devsecret
+      # You can also use a .env file
+      # env_file:
+      #   - ./backend/.env
+    volumes:
+      - ./backend/src:/usr/src/app/src
+    depends_on:
+      - mongo
+    networks:
+      - liveclass-network
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: liveclass-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - liveclass-network
+    command: npm run dev
 
   livekit:
     image: livekit/livekit-server
@@ -17,13 +58,19 @@ services:
     ports:
       - "7880:7880"
       - "7881:7881"
+      - "7882:7882/udp" # UDP port for WebRTC traffic
+      - "50000-60000:50000-60000/udp"
     environment:
-      - LIVEKIT_KEYS=local_key:local_secret
-      - LIVEKIT_HOST=localhost
-      - LIVEKIT_ANNOUNCE_IP=localhost
-      - LIVEKIT_DOMAIN=localhost
-      - LIVEKIT_API_PORT=7880
-      - LIVEKIT_WS_PORT=7881
+      # Use the same keys as the backend for the local SFU
+      - LIVEKIT_KEYS=devkey:devsecret
+      - LIVEKIT_HOST=livekit
+      - LIVEKIT_ANNOUNCE_IP=livekit
+    networks:
+      - liveclass-network
 
 volumes:
   mongo_data:
+
+networks:
+  liveclass-network:
+    driver: bridge
