@@ -3,8 +3,10 @@ import ClassModel from '../models/Class';
 
 interface WebSocketMessage {
   type: string;
-  payload: any;
+  payload?: any;
   classId: string;
+  message?: string;
+  isTyping?: boolean;
 }
 
 const wss = new WebSocketServer({ noServer: true });
@@ -18,20 +20,18 @@ wss.on('connection', (ws: WebSocket, request: any, classId: string) => {
 
   ws.on('message', async (message) => {
     try {
-      const parsedMessage = JSON.parse(message.toString());
+      const parsedMessage: WebSocketMessage = JSON.parse(message.toString());
       if (!parsedMessage.classId) {
           console.error('WebSocket message missing classId');
           return;
       }
       
-      // Persist the event to the database
-      const updateObject = parsedMessage.type === 'chat'
-          ? { $push: { chatEvents: parsedMessage } }
-          : { $push: { whiteboardEvents: parsedMessage } };
-      
-      await ClassModel.findByIdAndUpdate(parsedMessage.classId, updateObject);
+      // Persist the message to the database
+      if (parsedMessage.type === 'chat') {
+          await ClassModel.findByIdAndUpdate(parsedMessage.classId, { $push: { chatEvents: parsedMessage } });
+      }
 
-      // Broadcast the message to all clients in the same class
+      // Broadcast the message to all clients.
       const classClients = clients.get(parsedMessage.classId);
       if (classClients) {
         classClients.forEach(client => {
