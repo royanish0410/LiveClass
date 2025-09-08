@@ -6,14 +6,14 @@ interface ChatProps {
   messages: string[];
   sendMessage: (message: string) => void;
   currentIdentity: string;
+  isTeacherTyping: boolean;
 }
 
-const Chat = ({ messages, sendMessage, currentIdentity }: ChatProps) => {
+const Chat = ({ messages, sendMessage, currentIdentity, isTeacherTyping }: ChatProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // This effect ensures the chat window scrolls to the bottom for new messages.
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -23,6 +23,8 @@ const Chat = ({ messages, sendMessage, currentIdentity }: ChatProps) => {
       setInputMessage('');
     }
   };
+
+  const isInputDisabled = isTeacherTyping && currentIdentity !== 'Teacher';
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-inner">
@@ -59,8 +61,9 @@ const Chat = ({ messages, sendMessage, currentIdentity }: ChatProps) => {
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyPress={handleKeyPress}
-          className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Type a message..."
+          disabled={isInputDisabled}
+          className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200 disabled:placeholder-gray-500"
+          placeholder={isInputDisabled ? 'Teacher is typing...' : 'Type a message...'}
         />
       </div>
     </div>

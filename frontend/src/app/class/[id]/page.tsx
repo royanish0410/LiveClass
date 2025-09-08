@@ -20,12 +20,15 @@ const ClassPage = () => {
 
     const [chatMessages, setChatMessages] = useState<string[]>([]);
     const [isReplaying, setIsReplaying] = useState(false);
+    const [isTeacherTyping, setIsTeacherTyping] = useState(false);
     const whiteboardRef = useRef<WhiteboardHandle>(null);
 
     const handleWebSocketMessage = useCallback((event: MessageEvent) => {
         const data = JSON.parse(event.data);
         if (data.type === 'chat') {
             setChatMessages(prevMessages => [...prevMessages, data.message]);
+        } else if (data.type === 'teacher-typing') {
+            setIsTeacherTyping(data.isTyping);
         }
     }, []);
     
@@ -52,7 +55,6 @@ const ClassPage = () => {
         setIsReplaying(true);
         try {
             const response = await getClassEvents(classId);
-            // Use a type assertion to tell TypeScript that `response` is an array.
             const events = response as any[]; 
             setChatMessages([]);
             whiteboardRef.current?.replayEvents(events);
@@ -66,7 +68,6 @@ const ClassPage = () => {
 
     return (
         <div className="flex flex-col h-screen bg-gray-100 text-gray-800">
-            {/* Header */}
             <header className="p-4 bg-white flex justify-between items-center shadow-md border-b border-gray-200">
                 <h1 className="text-2xl font-bold text-blue-600">Live Class: {classId}</h1>
                 <div className="flex items-center space-x-4">
@@ -86,7 +87,6 @@ const ClassPage = () => {
                 </div>
             </header>
             
-            {/* Main content area */}
             <main className="flex flex-1 overflow-hidden p-4 space-x-4 bg-gray-50">
                 <div className="flex-1 bg-white rounded-lg shadow-lg flex justify-center items-center overflow-hidden relative border border-gray-200">
                     <Whiteboard sendMessage={sendMessage} ref={whiteboardRef} />
@@ -98,7 +98,12 @@ const ClassPage = () => {
                     </div>
                     <div className="bg-white rounded-lg shadow-lg flex-1 flex flex-col">
                         <h2 className="text-lg font-semibold p-4 text-gray-700">Chat</h2>
-                        <Chat messages={chatMessages} sendMessage={sendChatMessage} currentIdentity={identity || ''} />
+                        <Chat 
+                            messages={chatMessages} 
+                            sendMessage={sendChatMessage} 
+                            currentIdentity={identity || ''}
+                            isTeacherTyping={isTeacherTyping}
+                        />
                     </div>
                 </aside>
             </main>

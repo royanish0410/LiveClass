@@ -1,44 +1,46 @@
 import { useEffect, useState, useRef } from 'react';
 
-export const useWebSocket = (url: string, onMessage: (event: MessageEvent) => void) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const onMessageRef = useRef(onMessage);
+export const useWebSocket = <T = unknown>(
+    url: string,
+    onMessage: (event: MessageEvent) => void
+) => {
+    const [ws, setWs] = useState<WebSocket | null>(null);
+    const onMessageRef = useRef(onMessage);
 
-  // Update the ref whenever the onMessage prop changes
-  useEffect(() => {
-    onMessageRef.current = onMessage;
-  }, [onMessage]);
+    useEffect(() => {
+        onMessageRef.current = onMessage;
+    }, [onMessage]);
 
-  useEffect(() => {
-    const socket = new WebSocket(url);
+    useEffect(() => {
+        const socket = new WebSocket(url);
 
-    socket.onopen = () => {
-      console.log('WebSocket connection established.');
+        socket.onopen = () => {
+            console.log('WebSocket connection established.');
+        };
+
+        socket.onmessage = (event) => {
+            onMessageRef.current(event);
+        };
+
+        socket.onclose = () => {
+            console.log('WebSocket connection closed.');
+            setWs(null);
+        };
+
+        setWs(socket);
+
+        return () => {
+            if (socket.readyState === 1) {
+                socket.close();
+            }
+        };
+    }, [url]);
+
+    const sendMessage = (message: T) => {
+        if (ws && ws.readyState === 1) {
+            ws.send(JSON.stringify(message));
+        }
     };
 
-    socket.onmessage = (event) => {
-      onMessageRef.current(event);
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed.');
-      setWs(null);
-    };
-
-    setWs(socket);
-
-    return () => {
-      if (socket.readyState === 1) {
-        socket.close();
-      }
-    };
-  }, [url]); // The dependency array only includes 'url'
-
-  const sendMessage = (message: any) => {
-    if (ws && ws.readyState === 1) {
-      ws.send(JSON.stringify(message));
-    }
-  };
-
-  return { ws, sendMessage };
+    return { ws, sendMessage };
 };

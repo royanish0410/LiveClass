@@ -2,13 +2,25 @@
 
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 
+// Define the structure of events in the whiteboard
+interface WhiteboardEvent {
+    type: 'draw' | 'erase';
+    x?: number;
+    y?: number;
+    start?: boolean;
+    end?: boolean;
+    color?: string;
+    lineWidth?: number;
+    timestamp: string;
+}
+
 // Define the shape of the functions exposed by the ref
 export interface WhiteboardHandle {
-    replayEvents: (events: any[]) => void;
+    replayEvents: (events: WhiteboardEvent[]) => void;
 }
 
 interface WhiteboardProps {
-    sendMessage: (message: any) => void;
+    sendMessage: (message: WhiteboardEvent) => void;
 }
 
 type Tool = 'draw' | 'erase';
@@ -22,12 +34,12 @@ const Whiteboard = forwardRef<WhiteboardHandle, WhiteboardProps>(({ sendMessage 
 
     // Expose the replayEvents function via the ref
     useImperativeHandle(ref, () => ({
-        replayEvents: (events: any[]) => {
+        replayEvents: (events: WhiteboardEvent[]) => {
             const canvas = canvasRef.current;
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
-            
+
             // Clear the canvas for replay
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = whiteboardColor;
@@ -41,16 +53,15 @@ const Whiteboard = forwardRef<WhiteboardHandle, WhiteboardProps>(({ sendMessage 
 
                 setTimeout(() => {
                     if (event.type === 'draw' || event.type === 'erase') {
-                        // Replay the stroke on the canvas
-                        ctx.strokeStyle = event.color;
-                        ctx.lineWidth = event.lineWidth;
-                        
-                        if (event.start) {
+                        ctx.strokeStyle = event.color || 'black';
+                        ctx.lineWidth = event.lineWidth || 1;
+
+                        if (event.start && event.x !== undefined && event.y !== undefined) {
                             ctx.beginPath();
                             ctx.moveTo(event.x, event.y);
                         } else if (event.end) {
                             ctx.closePath();
-                        } else {
+                        } else if (event.x !== undefined && event.y !== undefined) {
                             ctx.lineTo(event.x, event.y);
                             ctx.stroke();
                         }
@@ -66,7 +77,7 @@ const Whiteboard = forwardRef<WhiteboardHandle, WhiteboardProps>(({ sendMessage 
         if (!canvas || !container) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-        
+
         const resizeCanvas = () => {
             const { width, height } = container.getBoundingClientRect();
             canvas.width = width;
@@ -75,12 +86,12 @@ const Whiteboard = forwardRef<WhiteboardHandle, WhiteboardProps>(({ sendMessage 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.strokeStyle = 'black'; // Set default drawing color
+            ctx.strokeStyle = 'black';
         };
 
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-        
+
         return () => {
             window.removeEventListener('resize', resizeCanvas);
         };
@@ -104,10 +115,10 @@ const Whiteboard = forwardRef<WhiteboardHandle, WhiteboardProps>(({ sendMessage 
             ctx.moveTo(x, y);
             ctx.strokeStyle = tool === 'draw' ? 'black' : whiteboardColor;
             ctx.lineWidth = tool === 'draw' ? 5 : 20;
-            sendMessage({ 
-                type: tool, 
-                x, 
-                y, 
+            sendMessage({
+                type: tool,
+                x,
+                y,
                 start: true,
                 color: ctx.strokeStyle,
                 lineWidth: ctx.lineWidth,
@@ -123,11 +134,11 @@ const Whiteboard = forwardRef<WhiteboardHandle, WhiteboardProps>(({ sendMessage 
         if (ctx) {
             ctx.lineTo(x, y);
             ctx.stroke();
-            sendMessage({ 
-                type: tool, 
-                x, 
+            sendMessage({
+                type: tool,
+                x,
                 y,
-                color: ctx.strokeStyle,
+                color: ctx.strokeStyle as string,
                 lineWidth: ctx.lineWidth,
                 timestamp: new Date().toISOString(),
             });

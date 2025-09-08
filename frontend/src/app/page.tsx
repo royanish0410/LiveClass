@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { joinClass, createClass } from './services/api';
+import { joinClass } from './services/api';
 import TeacherPage from './teacher/page';
 
 interface JoinResponse {
@@ -30,12 +30,17 @@ const StudentJoinForm = () => {
             } else {
                 alert(response.message);
             }
-        } catch (error) {
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error('Join class error:', error.message);
+            } else {
+                console.error('Join class error:', error);
+            }
             alert('Error joining class. Please check the Class ID and try again.');
         } finally {
             setIsLoading(false);
         }
-    };
+    };    
 
     return (
         <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-md border border-gray-100">
@@ -91,13 +96,13 @@ const HomePage = () => {
                         onClick={() => setUserRole('teacher')}
                         className="p-4 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-lg hover:bg-blue-700 transition-colors duration-200"
                     >
-                        I'm a Teacher
+                        I&apos;m a Teacher
                     </button>
                     <button
                         onClick={() => setUserRole('student')}
                         className="p-4 rounded-xl bg-green-600 text-white font-semibold text-lg shadow-lg hover:bg-green-700 transition-colors duration-200"
                     >
-                        I'm a Student
+                        I&apos;m a Student
                     </button>
                 </div>
             ) : userRole === 'teacher' ? (

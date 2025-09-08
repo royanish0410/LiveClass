@@ -8,48 +8,49 @@ interface VideoGridProps {
 }
 
 const VideoGrid = ({ participants }: VideoGridProps) => {
-  // Use a ref to hold a list of video elements
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+
+  const validParticipants = participants.filter(track => track.sid);
 
   useEffect(() => {
-    // This effect handles the attachment and detachment of tracks to video elements.
-    
-    // Attach each participant's video track to a corresponding video element.
-    // The attach() method is idempotent, so it's safe to call even if the track is already attached.
-    participants.forEach((track, index) => {
-      const videoElement = videoRefs.current[index];
+    console.log(`🔄 VideoGrid: Rerendering with ${validParticipants.length} participants.`);
+    validParticipants.forEach((track) => {
+      const videoElement = videoRefs.current[track.sid!];
       if (videoElement) {
         track.attach(videoElement);
+        console.log(`🖼️ VideoGrid: Attached track ${track.sid} to video element.`);
+      } else {
+        console.warn(`⚠️ VideoGrid: Could not find video element for track ${track.sid}.`);
       }
     });
 
-    // The cleanup function will detach the tracks when the component re-renders
-    // or unmounts, preventing memory leaks.
     return () => {
-      participants.forEach((track) => {
-        // Detach the track from any element it might be attached to
+      console.log("🧹 VideoGrid: Cleaning up detached tracks.");
+      validParticipants.forEach((track) => {
         track.detach();
       });
     };
-  }, [participants]); // Re-run this effect whenever the participants array changes
+  }, [validParticipants]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-      {participants.length > 0 ? (
-        participants.map((track, index) => (
-          <div key={track.sid} className="bg-white rounded-lg overflow-hidden shadow-md border border-gray-200">
+      {validParticipants.length > 0 ? (
+        validParticipants.map((track) => (
+          <div key={track.sid!} className="bg-gray-900 rounded-lg overflow-hidden">
             <video
               ref={el => {
-                videoRefs.current[index] = el;
+                if (track.sid) {
+                  videoRefs.current[track.sid] = el;
+                }
               }}
               className="w-full h-full object-cover"
               autoPlay
-              playsInline // Recommended for mobile browsers
+              playsInline
             />
           </div>
         ))
       ) : (
-        <p className="text-gray-600 text-sm p-4">No other participants in the room.</p>
+        <p className="text-gray-400 text-sm p-4">No participants in the room.</p>
       )}
     </div>
   );
