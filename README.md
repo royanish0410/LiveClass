@@ -118,6 +118,30 @@ docker-compose.yml
 - Frontend Next.js server
 - LiveKit media server
 
+## 🚀 Deployment
+
+The application is deployed and accessible at:
+
+- **Frontend**: Hosted on Vercel
+  - Live URL: [https://live-class-tan.vercel.app/]
+  - Automatic deployments are triggered on push to the main branch
+
+- **Backend**: Hosted on Render
+  - API URL: [https://liveclass-xh6r.onrender.com/]
+  - Automatic deployments are triggered on push to the main branch
+
+### Deployment Configuration
+
+#### Frontend (Vercel)
+- Deploy using the Vercel dashboard or CLI
+- Environment variables should be configured in Vercel project settings
+- Use `.env.local` as reference for required environment variables
+
+#### Backend (Render)
+- Deploy using Render Web Services
+- Configure environment variables in Render dashboard
+- Use `backend/.env.example` as reference for required environment variables
+
 ## 🚀 Future Enhancements
 
 - [ ] User authentication system
@@ -141,13 +165,6 @@ docker-compose.yml
 4. Push to the branch
 5. Submit a pull request
 
-## 📄 License
-
-This project is licensed under the MIT License.
-
-royanish0410: write how to fork this repository
-
-GitHub Copilot: Here's a guide on how to fork this repository:
 
 # How to Fork the LiveClass Repository
 
