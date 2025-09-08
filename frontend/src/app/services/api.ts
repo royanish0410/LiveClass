@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://liveclass-xh6r.onrender.com/', // Adjust if your backend is on a different port
+  baseURL: 'https://liveclass-xh6r.onrender.com/api', // Adjust if your backend is on a different port
 });
 
 export const createClass = async (name: string, maxParticipants: number) => {
