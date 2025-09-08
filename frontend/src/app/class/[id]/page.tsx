@@ -54,7 +54,7 @@ const ClassPage = () => {
         setIsReplaying(true);
         try {
             const response = await getClassEvents(classId);
-            const events = response as any[]; 
+            const events = response as[]; 
             setChatMessages([]);
             whiteboardRef.current?.replayEvents(events);
         } catch (error) {
