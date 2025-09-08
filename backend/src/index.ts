@@ -11,8 +11,16 @@ import { setupWebSocket } from './websocket';
 
 const app = express();
 
+// The fix: Configure CORS to explicitly allow your Vercel frontend.
+const vercelFrontendUrl = 'https://live-class-tan.vercel.app';
+const corsOptions = {
+    origin: vercelFrontendUrl,
+    methods: ['GET', 'POST'],
+    credentials: true,
+};
+app.use(cors(corsOptions));
+
 // Middlewares
-app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
