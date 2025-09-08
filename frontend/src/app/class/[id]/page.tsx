@@ -33,8 +33,7 @@ const ClassPage = () => {
     }, []);
     
     const { room, participants } = useLiveKit(liveKitToken ?? '', classId);
-    const { sendMessage, ws } = useWebSocket(`ws://localhost:5000/ws/${classId}`, handleWebSocketMessage);
-    
+    const { sendMessage, ws } = useWebSocket(`${process.env.NEXT_PUBLIC_WS_URL}/${classId}`, handleWebSocketMessage);
     const sendChatMessage = useCallback((message: string) => {
         const messagePayload = { 
             type: 'chat', 
